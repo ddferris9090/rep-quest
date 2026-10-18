@@ -1,6 +1,6 @@
 // Rep Quest offline support. Bump VERSION whenever app files change.
 // App pages load fresh from the network when online and fall back to the saved copy offline.
-const VERSION = 'rq-v8';
+const VERSION = 'rq-v9';
 const SHELL = ['./', 'index.html', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
