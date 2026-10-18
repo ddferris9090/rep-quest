@@ -130,27 +130,34 @@ details ul,details ol{margin:0;padding-left:18px;font-size:14px}
 <script>
 (function(){
 /* ---------- the plan: calisthenics every day ---------- */
-const PUSH={name:'Push day',ex:[
-  ['Incline push-ups','Hands on a counter or bench, body straight','3 × 8–12'],
-  ['Pike push-ups','Hips high, lower your head toward the floor','3 × 6–10'],
-  ['Chair dips','Hands on a sturdy chair, feet on the floor','3 × 8–12'],
-  ['Plank','Straight line, squeeze your glutes','3 × 30 s']]};
-const LEGS={name:'Leg day',ex:[
-  ['Bodyweight squats','Sit back, chest up','3 × 15'],
-  ['Reverse lunges','Step back, back knee almost to the floor','3 × 10 each leg'],
-  ['Glute bridges','Squeeze hard at the top','3 × 15'],
-  ['Wall sit','Thighs level with the floor','3 × 30 s']]};
-const PULL={name:'Pull day',ex:[
-  ['Inverted rows','Under a sturdy table or low bar, pull chest up','3 × 6–10'],
-  ['Towel door rows','Towel around a door handle, lean back, pull in','3 × 10'],
-  ['Superman holds','Lift arms and legs, hold 2 seconds','3 × 12'],
-  ['Dead bugs','Low back pressed to the floor','3 × 10 each side']]};
-const CORE={name:'Core + stretch',ex:[
-  ['Plank','Straight line, breathe','3 × 30 s'],
-  ['Side plank','Hips up','3 × 20 s each side'],
-  ['Hollow hold','Low back on the floor, arms overhead','3 × 15 s'],
-  ['Stretch','Hips, hamstrings, chest, shoulders','10 min']]};
-const WEEK={1:PUSH,2:LEGS,3:PULL,4:CORE,5:PUSH,6:LEGS,0:PULL};
+/* 8-week progression, no pull-up bar. Phase = 2 weeks. After week 8 it repeats with one extra set. */
+const PHASES={
+ push:[
+  [['Incline push-ups','Hands on a counter, body straight','3 × 8–12'],['Pike push-ups','Hips high, head toward the floor','3 × 6–10'],['Chair dips','Hands on a sturdy chair, feet on the floor','3 × 8–12'],['Plank','Straight line, squeeze glutes','3 × 30 s']],
+  [['Low incline push-ups','Hands on a couch or chair seat','3 × 8–12'],['Pike push-ups','Hips high, slow on the way down','3 × 8–12'],['Chair dips','Go a little deeper','3 × 10–15'],['Plank shoulder taps','Hips still','3 × 20 taps']],
+  [['Floor push-ups','Full push-ups, chest to a fist off the floor','4 × 6–10'],['Elevated pike push-ups','Feet on a chair','3 × 6–8'],['Straight-leg chair dips','Legs straight out','3 × 10–15'],['Plank','Straight line','3 × 45 s']],
+  [['Decline push-ups','Feet on a chair','4 × 6–10'],['Diamond push-ups','Hands together under your chest','3 × 6–10'],['Elevated pike push-ups','Feet on a chair, slow','3 × 8–10'],['Straight-leg chair dips','3 seconds down','3 × 12–15']]],
+ legs:[
+  [['Bodyweight squats','Sit back, chest up','3 × 15'],['Reverse lunges','Back knee almost to the floor','3 × 10 each leg'],['Glute bridges','Squeeze at the top','3 × 15'],['Wall sit','Thighs level with the floor','3 × 30 s']],
+  [['Split squats','Feet staggered, drop straight down','3 × 10 each leg'],['Bodyweight squats','3 seconds down','3 × 20'],['Single-leg glute bridges','One foot down, other leg up','3 × 10 each leg'],['Wall sit','Thighs level','3 × 45 s']],
+  [['Bulgarian split squats','Back foot on a chair','3 × 8–10 each leg'],['Step-ups','Onto a sturdy chair, drive through the heel','3 × 10 each leg'],['Single-leg glute bridges','Pause at the top','3 × 12 each leg'],['Calf raises','On a step, full range','3 × 20']],
+  [['Bulgarian split squats','Back foot on a chair, slow','4 × 10 each leg'],['Jump squats','Land soft','3 × 10'],['Step-ups','Higher step if you have one','3 × 12 each leg'],['Wall sit','Thighs level','3 × 60 s']]],
+ pull:[
+  [['Table rows','Lie under a sturdy table, pull chest to the edge','3 × 6–10'],['Towel door rows','Towel around a door handle, lean back, pull in','3 × 10'],['Superman holds','Lift arms and legs, hold 2 s','3 × 12'],['Dead bugs','Low back pressed down','3 × 10 each side']],
+  [['Table rows','Squeeze shoulder blades at the top','3 × 8–12'],['Towel door rows','Lean back further','3 × 12'],['Reverse snow angels','Face down, sweep arms overhead','3 × 10'],['Bird dogs','Opposite arm and leg, slow','3 × 10 each side']],
+  [['Table rows','Feet farther out, body straighter','4 × 8–10'],['Backpack rows','Load a backpack, one arm, brace on a chair','3 × 10 each arm'],['Superman holds','Hold 3 s','3 × 15'],['Reverse snow angels','Slow','3 × 12']],
+  [['Table rows','Feet up on a chair','4 × 6–10'],['Backpack rows','Heavier bag','4 × 12 each arm'],['Towel door rows','3 seconds on the way back','3 × 10'],['Prone Y-T raises','Face down, thumbs up','3 × 10 each']]],
+ core:[
+  [['Plank','Straight line, breathe','3 × 30 s'],['Side plank','Hips up','3 × 20 s each side'],['Hollow hold','Low back on the floor','3 × 15 s'],['Stretch','Hips, hamstrings, chest, shoulders','10 min']],
+  [['Plank','Straight line','3 × 45 s'],['Side plank','Hips up','3 × 30 s each side'],['Hollow hold','Arms overhead','3 × 20 s'],['Stretch','Hips, hamstrings, chest, shoulders','10 min']],
+  [['Plank','Straight line','3 × 60 s'],['Side plank','Hips up','3 × 40 s each side'],['Lying leg raises','Low back stays down','3 × 10'],['Stretch','Hips, hamstrings, chest, shoulders','10 min']],
+  [['Plank shoulder taps','Hips still','3 × 30 taps'],['Side plank','Top leg raised if you can','3 × 45 s each side'],['Hollow hold','Arms overhead','3 × 30 s'],['Lying leg raises','Slow','3 × 12']]]};
+const DAYTYPE={1:'push',2:'legs',3:'pull',4:'core',5:'push',6:'legs',0:'pull'};
+const DAYNAME={push:'Push day',legs:'Leg day',pull:'Pull day',core:'Core + stretch'};
+function weekNum(k){const ws=x=>{const [y,m,d]=x.split('-').map(Number);const dt=new Date(y,m-1,d);dt.setDate(dt.getDate()-((dt.getDay()+6)%7));return dt};return Math.max(0,Math.round((ws(k)-ws(addDays(st.created,1)))/6048e5))}
+function workoutFor(k){const w=weekNum(k),phase=Math.floor(w/2)%4,cycle=Math.floor(w/8),type=DAYTYPE[dowOf(k)];
+  const ex=PHASES[type][phase].map(e=>[e[0],e[1],cycle?e[2].replace(/^(\d+)/,n=>String(+n+Math.min(cycle,2))):e[2]]);
+  return{name:DAYNAME[type],ex,week:w+1,phase:phase+1,cycle}}
 
 const BRK={name:'5 scrambled eggs',p:31},SHAKE={name:'Protein shake, 2 scoops',p:50};
 const DISH={chk:{name:'Lemon-pepper chicken & broccoli',p:52},chili:{name:'Turkey chili',p:46},steak:{name:'Garlic steak bites & green beans',p:54},salmon:{name:'Baked salmon & asparagus',p:44}};
@@ -164,27 +171,29 @@ const HABITS=[['water','Drink 3 L of water'],['noscroll','No Reels, Shorts or Ti
 const CHECK_XP=10, DAY_XP=50;
 
 /* ---------- helpers ---------- */
+function dowOf(k){const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d).getDay()}
 const $=id=>document.getElementById(id);
 const dkey=d=>{d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const addDays=(k,n)=>{const [y,m,d]=k.split('-').map(Number);return dkey(new Date(y,m-1,d+n))};
-const dowOf=k=>{const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d).getDay()};
+const dowOfX=k=>{const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d).getDay()};
 const TICK='<svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 4.5" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 /* ---------- state (stored only on this phone) ---------- */
 const KEY='repquest.simple.v1';
-let st={checks:{},bonus:[],created:dkey(Date.now()),reminders:false,mute:false,lastBackup:0};
+let st={checks:{},bonus:[],weights:{},created:dkey(Date.now()),reminders:false,mute:false,lastBackup:0};
 try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.checks)st=Object.assign(st,v)}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
 save();
 
 function itemsFor(k){
-  const dow=dowOf(k),w=WEEK[dow],[l,d]=MEALS[dow];
+  const dow=dowOf(k),w=workoutFor(k),[l,d]=MEALS[dow];
   const workout=w.ex.map((e,i)=>({id:'w'+i,t:e[0],s:e[1],r:e[2]}));
   const food=[{id:'brk',t:'Breakfast · '+BRK.name,s:'6:15 AM',r:BRK.p+' g'},{id:'lunch',t:'Lunch · '+DISH[l].name,s:'12:00 PM',r:DISH[l].p+' g'},
-    {id:'dinner',t:'Dinner · '+DISH[d].name,s:'7:30 PM',r:DISH[d].p+' g'},{id:'shake',t:'Shake · '+SHAKE.name,s:'8:30 PM',r:SHAKE.p+' g'}];
+    {id:'snack',t:'Snack · Greek yogurt + 1 oz almonds',s:'3:00 PM',r:'26 g'},{id:'dinner',t:'Dinner · '+DISH[d].name,s:'7:30 PM',r:DISH[d].p+' g'},{id:'shake',t:'Shake · '+SHAKE.name,s:'8:30 PM',r:SHAKE.p+' g'}];
   if(dow===0)food.push({id:'prep',t:'Meal prep for the week',s:'1:00 PM · recipes at the bottom',r:'90 min'});
   const habits=HABITS.map(h=>({id:h[0],t:h[1],s:'',r:''}));
-  return{name:w.name,workout,food,habits,all:[...workout,...food,...habits]};
+  if(dow===1)habits.unshift({id:'weigh',t:'Weigh in',s:'Morning, before eating, same scale',r:'',weigh:true});
+  return{name:w.name,wk:w,workout,food,habits,all:[...workout,...food,...habits]};
 }
 const isDone=k=>{const c=st.checks[k]||[];return itemsFor(k).all.every(i=>c.includes(i.id))};
 
@@ -203,7 +212,8 @@ const title=n=>{let t='Rookie';for(const [l,x] of TITLES)if(n>=l)t=x;return t};
 
 /* ---------- render ---------- */
 let shownDay=dkey(Date.now());
-function rows(list,checked){return list.map(i=>{const on=checked.includes(i.id);
+function weighRow(i,on,k){const v=st.weights[k]||'';return`<div class="row${on?' on':''}" style="cursor:default"><div class="box" aria-hidden="true">${on?TICK:''}</div><div style="min-width:0"><div class="t">${i.t}</div><div class="s">${i.s}</div></div><div style="display:flex;gap:6px;align-items:center"><input id="wIn" type="number" inputmode="decimal" placeholder="lb" value="${v}" aria-label="Weight in pounds" style="width:70px;background:var(--ink);border:1px solid var(--line);border-radius:9px;color:var(--fg);padding:7px;font-family:var(--display);font-size:18px"><button type="button" id="wSave" style="background:var(--gold);color:var(--ink);border:0;border-radius:9px;padding:8px 10px;font-weight:700">Save</button></div></div>`}
+function rows(list,checked,k){return list.map(i=>{const on=checked.includes(i.id);if(i.weigh)return weighRow(i,on,k);
   return`<button type="button" class="row${on?' on':''}" data-id="${i.id}" aria-pressed="${on}"><div class="box" aria-hidden="true">${on?TICK:''}</div><div style="min-width:0"><div class="t">${i.t}</div>${i.s?`<div class="s">${i.s}</div>`:''}</div><div class="r">${i.r}</div></button>`}).join('')}
 function render(){
   const k=dkey(Date.now());shownDay=k;const it=itemsFor(k);const c=st.checks[k]||[];const s=stats();
@@ -214,10 +224,10 @@ function render(){
   const done=it.all.filter(i=>c.includes(i.id)).length;$('count').textContent=`${done}/${it.all.length}`;
   $('banner').innerHTML=done===it.all.length?`<div class="done-banner">Day complete. +${DAY_XP} XP. See you tomorrow.</div>`:'';
   const wDone=it.workout.filter(i=>c.includes(i.id)).length;
-  $('workout').innerHTML=`<div class="card-h"><h2>Workout · ${it.name}</h2><span>${wDone}/${it.workout.length} · 6:00 PM</span></div>
-    <div class="note">Warm up 3 min: arm circles, leg swings, 10 squats. Rest about 60 s between sets. When every set hits the top number, make it harder next time.</div>${rows(it.workout,c)}`;
-  $('food').innerHTML=`<div class="card-h"><h2>Food</h2><span>protein</span></div>${rows(it.food,c)}`;
-  $('habits').innerHTML=`<div class="card-h"><h2>Habits</h2><span></span></div>${rows(it.habits,c)}`;
+  $('workout').innerHTML=`<div class="card-h"><h2>${it.name}</h2><span>Week ${it.wk.week} · ${wDone}/${it.workout.length}</span></div>
+    <div class="note">Warm up 3 min: arm circles, leg swings, 10 squats. Rest about 60 s between sets. ${it.wk.phase<4?`Gets harder in week ${(Math.floor((it.wk.week-1)/2)+1)*2+1}.`:'Hardest phase. Next cycle adds a set.'}</div>${rows(it.workout,c,k)}`;
+  $('food').innerHTML=`<div class="card-h"><h2>Food</h2><span>protein</span></div>${rows(it.food,c,k)}`;
+  $('habits').innerHTML=`<div class="card-h"><h2>Habits</h2><span></span></div>${rows(it.habits,c,k)}${weighAdvice()}`;
   $('remind').hidden=!!st.reminders;
   $('muteBtn').textContent=st.mute?'Sounds off':'Sounds on';
   const d=st.lastBackup?Math.floor((Date.now()-st.lastBackup)/864e5):null;
@@ -226,13 +236,20 @@ function render(){
 }
 $('recipes').innerHTML=RECIPES.map(r=>`<h4>${r[0]}</h4><ul>${r[1].map(x=>`<li>${x}</li>`).join('')}</ul><ol>${r[2].map(x=>`<li>${x}</li>`).join('')}</ol>`).join('');
 
+function weighAdvice(){
+  const ks=Object.keys(st.weights).sort();if(ks.length<2)return ks.length?`<div class="note">First weigh-in saved. Advice starts after next Monday's.</div>`:'';
+  const a=+st.weights[ks[ks.length-2]],b=+st.weights[ks[ks.length-1]];const wk=Math.max(1,Math.round((new Date(ks[ks.length-1])-new Date(ks[ks.length-2]))/6048e5));const ch=(b-a)/wk;
+  const msg=ch<=-1.5?'Dropping fast. Add a second yogurt each day so you keep your muscle.':ch>-0.5?'Not dropping enough. Skip the almonds this week.':'Right on pace. Change nothing.';
+  return`<div class="note">Last week: ${ch>0?'+':''}${ch.toFixed(1)} lb. ${msg}</div>`}
 /* ---------- checking things off ---------- */
 let actx=null;
 function chime(kind){if(st.mute)return;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();const t=actx.currentTime;
   (kind==='win'?[523,659,784,1046]:kind==='loot'?[784,1046,1318]:[660,990]).forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type='triangle';o.frequency.value=f;const at=t+i*.1;g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(.2,at+.02);g.gain.exponentialRampToValueAtTime(.0001,at+.25);o.connect(g).connect(actx.destination);o.start(at);o.stop(at+.3)})}catch(e){}}
 function toast(h){const t=document.createElement('div');t.className='toast';t.innerHTML=h;$('toasts').appendChild(t);setTimeout(()=>t.remove(),2800)}
 document.querySelector('.wrap').addEventListener('click',e=>{
-  const b=e.target.closest('.row');if(!b)return;
+  if(e.target.id==='wSave'){const v=parseFloat($('wIn').value);if(!(v>50&&v<700)){toast('Enter your weight in pounds');return}
+    const k=dkey(Date.now());st.weights[k]=v;const c=st.checks[k]=st.checks[k]||[];if(!c.includes('weigh'))c.push('weigh');save();render();toast('Weigh-in saved');chime('tick');return}
+  const b=e.target.closest('button.row');if(!b)return;
   const k=dkey(Date.now());const c=st.checks[k]=st.checks[k]||[];const i=c.indexOf(b.dataset.id);
   const before=stats();
   if(i>=0){c.splice(i,1)}else{c.push(b.dataset.id);
@@ -257,6 +274,7 @@ $('importFile').onchange=async e=>{const f=e.target.files&&e.target.files[0];e.t
   try{const v=JSON.parse(await f.text());if(!v||!v.checks)throw 0;
     for(const k in v.checks)st.checks[k]=[...new Set([...(st.checks[k]||[]),...v.checks[k]])];
     const seen=new Set(st.bonus.map(b=>b.ts));for(const b of v.bonus||[])if(!seen.has(b.ts))st.bonus.push(b);
+    Object.assign(st.weights,v.weights||{});
     if(v.created&&v.created<st.created)st.created=v.created;save();render();toast('Backup imported')}
   catch(err){toast("That isn't a Rep Quest backup file")}};
 
