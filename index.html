@@ -14,9 +14,11 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap">
 <style>
+/* One calm screen: header, week strip, today's timeline (with the workout inside it), habits.
+   Everything else appears only when it's relevant (Sunday, Monday, a tap). */
 :root{
   --ink:#10121c;--panel:#1a1d2b;--panel-2:#232738;--line:#2f3449;
-  --fg:#eef0f7;--muted:#9097b0;--gold:#f2b33d;--gold-deep:#b9821c;--flame:#ff6b57;--done:#4fd1b5;
+  --fg:#eef0f7;--muted:#9097b0;--gold:#f2b33d;--gold-deep:#b9821c;--flame:#ff6b57;--done:#4fd1b5;--water:#5bb8ff;
   --display:"Saira Condensed","Arial Narrow",Impact,sans-serif;
   --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
@@ -28,56 +30,106 @@ body{margin:0;color:var(--fg);font-family:var(--body);font-size:16px;line-height
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-block:calc(14px + env(safe-area-inset-top,0px)) calc(40px + env(safe-area-inset-bottom,0px))}
 .wrap{max-width:540px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-button{font:inherit;color:inherit;cursor:pointer}
-button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.num{font-family:var(--display);font-variant-numeric:tabular-nums}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
-/* top bar */
+/* header */
 .top{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
 .lv{display:flex;flex-direction:column;gap:6px;min-width:0}
-.lv-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.lv-row{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted)}
 .lv-row b{font-family:var(--display);font-size:18px;color:var(--fg);letter-spacing:.04em;text-transform:uppercase}
 .bar{height:10px;border-radius:99px;background:var(--panel);border:1px solid var(--line);overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-deep),var(--gold));transition:width .6s}
 .streak{display:flex;flex-direction:column;align-items:center;padding:6px 12px;border-radius:12px;background:rgba(255,107,87,.1);border:1px solid rgba(255,107,87,.35)}
 .streak b{font-family:var(--display);font-size:28px;line-height:1;color:var(--flame)}
 .streak span{font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;font-weight:600;white-space:nowrap}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.wd{text-align:center;font-size:11px;color:var(--muted);font-weight:600}
+.wd i{display:grid;place-items:center;margin:4px auto 0;width:100%;max-width:40px;aspect-ratio:1;border-radius:9px;border:1px solid var(--line);font-style:normal;font-family:var(--display);font-size:15px;font-weight:700}
+.wd i.ok{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+.wd i.miss1{border-color:var(--gold-deep);color:var(--gold-deep)}
+.wd i.miss2{border-color:var(--flame);color:var(--flame)}
+.wd i.today{box-shadow:0 0 0 2px var(--fg)}
+.wd i.future{opacity:.35}
 
 /* day header */
-.day{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:4px}
+.day{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
 .day small{display:block;font-size:12px;letter-spacing:.18em;color:var(--gold);font-weight:700;text-transform:uppercase}
-.day h1{margin:2px 0 0;font-family:var(--display);font-size:40px;font-weight:800;line-height:1;text-transform:uppercase}
-.day .count{font-family:var(--display);font-size:30px;font-weight:800;color:var(--gold);line-height:1}
+.day h1{margin:2px 0 0;font-family:var(--display);font-size:38px;font-weight:800;line-height:1;text-transform:uppercase}
+.day .count{font-family:var(--display);font-size:28px;font-weight:800;color:var(--gold);line-height:1;text-align:right}
+.day .count span{display:block;font-size:11px;letter-spacing:.12em;color:var(--muted);font-family:var(--body);font-weight:600}
 
-/* cards + rows */
-.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:6px 14px}
-.card-h{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0 4px;gap:10px}
+/* cards and rows */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:4px 14px 8px}
+.card-h{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0 2px;gap:10px}
 .card-h h2{margin:0;font-family:var(--display);font-size:20px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
-.card-h span{font-size:13px;color:var(--muted)}
+.card-h span{font-size:13px;color:var(--muted);text-align:right}
 .note{font-size:13px;color:var(--muted);padding:2px 0 8px}
-.row{display:grid;grid-template-columns:30px 1fr auto;gap:12px;align-items:center;width:100%;background:none;border:0;border-top:1px solid var(--line);padding:13px 0;text-align:left}
-.row:first-of-type{border-top:0}
-.box{width:30px;height:30px;border-radius:9px;border:2px solid var(--line);display:grid;place-items:center;color:var(--ink)}
-.row.on .box{background:var(--done);border-color:var(--done)}
-.row .t{font-weight:600}
-.row .s{font-size:13px;color:var(--muted);margin-top:1px}
-.row .r{font-family:var(--display);font-size:18px;font-weight:700;color:var(--gold);white-space:nowrap;text-align:right}
-.row.on .t{color:var(--muted);text-decoration:line-through}
-.row.on .r{color:var(--done)}
-.done-banner{background:rgba(79,209,181,.12);border:1px solid rgba(79,209,181,.45);color:var(--done);border-radius:14px;padding:14px;font-weight:600;text-align:center}
+.item{border-top:1px solid var(--line);padding:12px 0}
+.item:first-of-type{border-top:0}
+.item.next{border:1px solid var(--gold);border-radius:12px;padding:12px 10px;margin:6px -10px;background:rgba(242,179,61,.06)}
+.item.next+.item{border-top:0}
+.tag{display:inline-block;font-size:10px;letter-spacing:.16em;font-weight:700;color:var(--ink);background:var(--gold);border-radius:5px;padding:2px 6px;margin-bottom:6px}
+.row{display:grid;grid-template-columns:30px 1fr auto;gap:12px;align-items:center;width:100%;background:none;border:0;padding:0;text-align:left}
+.box{width:30px;height:30px;border-radius:9px;border:2px solid var(--line);display:grid;place-items:center;color:var(--ink);background:none;padding:0}
+.on>.box,.box.mine{background:var(--done);border-color:var(--done)}
+.t{font-weight:600}
+.s{font-size:13px;color:var(--muted);margin-top:1px}
+.r{font-family:var(--display);font-size:17px;font-weight:700;color:var(--gold);white-space:nowrap;text-align:right}
+.on .t{color:var(--muted);text-decoration:line-through}
+.on .r{color:var(--done)}
+.link{background:none;border:0;color:var(--muted);font-size:13px;text-decoration:underline;text-underline-offset:3px;padding:6px 0 0 42px;text-align:left}
+.planb{margin:6px 0 0 42px;font-size:14px;color:var(--fg);background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 
-/* small stuff */
+/* workout block inside the timeline */
+.wo-list{margin:8px 0 0 42px}
+.wo-ex{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px dashed var(--line)}
+.wo-ex:first-child{border-top:0}
+.wo-ex .info{background:none;border:0;padding:0;text-align:left;min-width:0}
+.wo-ex.on .t{color:var(--muted);text-decoration:line-through}
+.wo-ex .how{grid-column:1/4;font-size:14px;color:var(--fg);background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.wo-ex .how ol{margin:0;padding-left:18px}
+.wo-ex .how .adj{display:flex;gap:8px;margin-top:10px}
 .btn{background:var(--gold);color:var(--ink);border:0;border-radius:12px;padding:13px;font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-align:center;text-decoration:none;display:block;width:100%}
 .btn.ghost{background:none;border:1px solid var(--line);color:var(--fg)}
+.btn.small{padding:8px 12px;font-size:14px;width:auto}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.done-banner{background:rgba(79,209,181,.12);border:1px solid rgba(79,209,181,.45);color:var(--done);border-radius:14px;padding:14px;font-weight:600;text-align:center}
+.pips{display:flex;gap:5px}
+.pips i{width:14px;height:22px;border-radius:4px;border:1.5px solid var(--line)}
+.pips i.on{background:var(--water);border-color:var(--water)}
+.inp{width:84px;background:var(--ink);border:1px solid var(--line);border-radius:9px;padding:7px;font-family:var(--display);font-size:18px}
+.tempt{display:grid;grid-template-columns:26px 1fr;gap:12px;align-items:center;width:100%;background:var(--panel);border:1px dashed var(--flame);border-radius:14px;padding:12px 14px;text-align:left}
+.tempt b{color:var(--flame);font-family:var(--display);font-size:18px;letter-spacing:.06em;text-transform:uppercase}
+.tempt span{font-size:13px;color:var(--muted)}
 details{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
-summary{cursor:pointer;font-weight:600;list-style:none}
-summary::-webkit-details-marker{display:none}
+summary{cursor:pointer;font-weight:600}
 details h4{margin:12px 0 4px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 details ul,details ol{margin:0;padding-left:18px;font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:6px 0 8px}
+.stat{background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px}
+.stat b{display:block;font-family:var(--display);font-size:26px;color:var(--gold);line-height:1.1}
+.stat span{font-size:12px;color:var(--muted)}
 .sr{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
 .foot{font-size:12px;color:var(--muted);text-align:center}
 .foot button{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:12px;padding:0}
+
+/* full-screen overlays, each with a visible exit */
+.ov{position:fixed;inset:0;z-index:30;background:var(--ink);display:flex;flex-direction:column;overflow-y:auto;
+  padding:calc(14px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px))}
+.ov-in{max-width:520px;width:100%;margin:0 auto;flex:1;display:flex;flex-direction:column;gap:14px}
+.ov-top{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--muted);font-size:13px;font-weight:600}
+.x{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:15px;font-weight:600}
+.ov-mid{flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;text-align:center}
+.ov-mid small{letter-spacing:.2em;font-weight:700;font-size:12px;color:var(--gold);text-transform:uppercase}
+.ov-mid h3{margin:0;font-family:var(--display);font-size:38px;font-weight:800;text-transform:uppercase;line-height:1}
+.ov-mid p{margin:0;color:var(--muted)}
+.clock{font-family:var(--display);font-size:92px;font-weight:800;line-height:1;color:var(--gold);font-variant-numeric:tabular-nums}
+.setpips{display:flex;justify-content:center;gap:8px}
+.setpips i{width:34px;height:8px;border-radius:9px;background:var(--panel-2)}
+.setpips i.on{background:var(--done)}
+.choice{display:flex;flex-direction:column;gap:8px}
 .toasts{position:fixed;left:0;right:0;top:calc(10px + env(safe-area-inset-top,0px));z-index:40;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding:0 16px}
 .toast{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:9px 15px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .25s ease-out both}
 .toast b{color:var(--gold);font-family:var(--display);font-size:18px}
@@ -92,200 +144,425 @@ details ul,details ol{margin:0;padding-left:18px;font-size:14px}
       <div class="lv-row"><b id="lvName">Level 1</b><span id="xpText">0 / 100 XP</span></div>
       <div class="bar"><i id="xpBar"></i></div>
     </div>
-    <div class="streak"><b id="streak" class="num">0</b><span>Day streak</span></div>
+    <div class="streak"><b id="streak">0</b><span>Day streak</span></div>
   </div>
+  <div class="week" id="week"></div>
 
   <div class="day">
     <div><small id="dateLine"></small><h1 id="dayTitle"></h1></div>
-    <div class="count" id="count">0/0</div>
+    <div class="count" id="count"></div>
   </div>
 
   <div id="banner"></div>
-
-  <div class="card" id="workout"></div>
-  <div class="card" id="food"></div>
+  <div class="card" id="today"></div>
+  <div class="card" id="shop" hidden></div>
   <div class="card" id="habits"></div>
+  <div class="card" id="review" hidden></div>
 
-  <div class="card" id="remind" hidden style="padding:14px;display:flex;flex-direction:column;gap:10px">
-    <div style="font-weight:600">Turn on daily reminders</div>
-    <div class="note" style="padding:0">Adds alerts to your iPhone Calendar: breakfast 6:15 AM, lunch noon, workout 6:00 PM, dinner 7:30 PM, shake 8:30 PM, Sunday meal prep.</div>
-    <a class="btn" href="reminders.ics">Add reminders to Calendar</a>
-    <button type="button" class="btn ghost" id="remindDone">Done, I added them</button>
+  <button type="button" class="tempt" id="temptBtn"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 11a5 5 0 0 1-10 0c0-2.5 1.2-4 2.5-5 .2 2 1 3 2 3.2C11 8 11.5 5 12 2z" fill="var(--flame)"/></svg><div><b>I'm tempted</b><br><span>Urge to scroll, slack off, or eat junk? Tap.</span></div></button>
+
+  <div class="card" id="remind" hidden>
+    <div style="padding:10px 0;display:flex;flex-direction:column;gap:10px">
+      <div style="font-weight:600">Turn on daily reminders</div>
+      <div class="note" style="padding:0">If you added Rep Quest reminders before, delete those events in Calendar first. These cover breakfast 6:15, lunch 12:00, snack 3:00, workout 6:00 with a follow-up at 6:30, dinner 7:30, shake 8:30, bed 10:00, and Sunday groceries at 10:30 and prep at 1:00.</div>
+      <a class="btn" href="reminders.ics">Add reminders to Calendar</a>
+      <button type="button" class="btn ghost" id="remindDone">Done, I added them</button>
+    </div>
   </div>
 
   <details>
-    <summary>Sunday meal prep recipes</summary>
+    <summary>Meal prep recipes</summary>
     <div id="recipes"></div>
   </details>
 
   <div class="two">
-    <button type="button" class="btn ghost" id="exportBtn" style="font-size:15px">Export backup</button>
-    <label class="btn ghost" for="importFile" style="font-size:15px;cursor:pointer">Import backup</label>
+    <button type="button" class="btn ghost small" id="exportBtn" style="width:100%">Export backup</button>
+    <label class="btn ghost small" for="importFile" style="width:100%;cursor:pointer">Import backup</label>
     <input type="file" id="importFile" class="sr" accept="application/json,.json">
   </div>
-  <p class="foot">Saved only on this phone. <span id="backupNote"></span> · <button type="button" id="muteBtn">Sounds on</button> · <button type="button" id="reRemind">Reminder setup</button></p>
+  <p class="foot">Saved only on this phone. <span id="backupNote"></span> · <button type="button" id="muteBtn">Sounds on</button> · <button type="button" id="reRemind">Reminders</button></p>
 </div>
+
+<!-- guided workout -->
+<div class="ov" id="guide" hidden role="dialog" aria-modal="true" aria-label="Guided workout"><div class="ov-in">
+  <div class="ov-top"><span id="gProg"></span><button type="button" class="x" id="gClose">Stop</button></div>
+  <div class="bar"><i id="gBar"></i></div>
+  <div class="ov-mid" id="gMid"></div>
+  <div class="choice" id="gBtns"></div>
+</div></div>
+
+<!-- 10-minute timer for "I'm tempted" -->
+<div class="ov" id="timerOv" hidden role="dialog" aria-modal="true" aria-label="Timer"><div class="ov-in">
+  <div class="ov-top"><span>Beat the urge</span><button type="button" class="x" id="tmCancel">Cancel</button></div>
+  <div class="ov-mid"><small id="tmTitle"></small><div class="clock" id="tmClock">10:00</div><p id="tmText"></p></div>
+  <div class="choice"><button type="button" class="btn" id="tmDone">Done</button></div>
+</div></div>
+
+<!-- "I'm tempted" menu -->
+<div class="ov" id="temptOv" hidden role="dialog" aria-modal="true" aria-label="I'm tempted"><div class="ov-in">
+  <div class="ov-top"><span>Ride it out</span><button type="button" class="x" id="tpClose">Close</button></div>
+  <div class="ov-mid" id="tpBody"></div>
+</div></div>
+
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script>
 (function(){
-/* ---------- the plan: calisthenics every day ---------- */
-/* 8-week progression, no pull-up bar. Phase = 2 weeks. After week 8 it repeats with one extra set. */
+/* ================= PLAN DATA ================= */
+// 8-week progression with no pull-up bar: 4 phases x 2 weeks. Slot i is the same movement in every phase,
+// so "too hard / too easy" steps that one exercise down or up. After week 8 it repeats with an extra set.
 const PHASES={
  push:[
-  [['Incline push-ups','Hands on a counter, body straight','3 × 8–12'],['Pike push-ups','Hips high, head toward the floor','3 × 6–10'],['Chair dips','Hands on a sturdy chair, feet on the floor','3 × 8–12'],['Plank','Straight line, squeeze glutes','3 × 30 s']],
-  [['Low incline push-ups','Hands on a couch or chair seat','3 × 8–12'],['Pike push-ups','Hips high, slow on the way down','3 × 8–12'],['Chair dips','Go a little deeper','3 × 10–15'],['Plank shoulder taps','Hips still','3 × 20 taps']],
-  [['Floor push-ups','Full push-ups, chest to a fist off the floor','4 × 6–10'],['Elevated pike push-ups','Feet on a chair','3 × 6–8'],['Straight-leg chair dips','Legs straight out','3 × 10–15'],['Plank','Straight line','3 × 45 s']],
-  [['Decline push-ups','Feet on a chair','4 × 6–10'],['Diamond push-ups','Hands together under your chest','3 × 6–10'],['Elevated pike push-ups','Feet on a chair, slow','3 × 8–10'],['Straight-leg chair dips','3 seconds down','3 × 12–15']]],
+  [['Incline push-ups','3 × 8–12'],['Pike push-ups','3 × 6–10'],['Chair dips','3 × 8–12'],['Plank','3 × 30 s']],
+  [['Low incline push-ups','3 × 8–12'],['Pike push-ups, slow down','3 × 8–12'],['Chair dips, go deeper','3 × 10–15'],['Plank shoulder taps','3 × 20 taps']],
+  [['Floor push-ups','4 × 6–10'],['Elevated pike push-ups','3 × 6–8'],['Straight-leg chair dips','3 × 10–15'],['Plank','3 × 45 s']],
+  [['Decline push-ups','4 × 6–10'],['Diamond push-ups','3 × 6–10'],['Elevated pike push-ups','3 × 8–10'],['Straight-leg chair dips','3 × 12–15']]],
  legs:[
-  [['Bodyweight squats','Sit back, chest up','3 × 15'],['Reverse lunges','Back knee almost to the floor','3 × 10 each leg'],['Glute bridges','Squeeze at the top','3 × 15'],['Wall sit','Thighs level with the floor','3 × 30 s']],
-  [['Split squats','Feet staggered, drop straight down','3 × 10 each leg'],['Bodyweight squats','3 seconds down','3 × 20'],['Single-leg glute bridges','One foot down, other leg up','3 × 10 each leg'],['Wall sit','Thighs level','3 × 45 s']],
-  [['Bulgarian split squats','Back foot on a chair','3 × 8–10 each leg'],['Step-ups','Onto a sturdy chair, drive through the heel','3 × 10 each leg'],['Single-leg glute bridges','Pause at the top','3 × 12 each leg'],['Calf raises','On a step, full range','3 × 20']],
-  [['Bulgarian split squats','Back foot on a chair, slow','4 × 10 each leg'],['Jump squats','Land soft','3 × 10'],['Step-ups','Higher step if you have one','3 × 12 each leg'],['Wall sit','Thighs level','3 × 60 s']]],
+  [['Bodyweight squats','3 × 15'],['Reverse lunges','3 × 10 each leg'],['Glute bridges','3 × 15'],['Wall sit','3 × 30 s']],
+  [['Bodyweight squats, 3 s down','3 × 20'],['Split squats','3 × 10 each leg'],['Single-leg glute bridges','3 × 10 each leg'],['Wall sit','3 × 45 s']],
+  [['Step-ups','3 × 10 each leg'],['Bulgarian split squats','3 × 8–10 each leg'],['Single-leg glute bridges','3 × 12 each leg'],['Calf raises','3 × 20']],
+  [['Jump squats','3 × 10'],['Bulgarian split squats','4 × 10 each leg'],['Step-ups','3 × 12 each leg'],['Wall sit','3 × 60 s']]],
  pull:[
-  [['Table rows','Lie under a sturdy table, pull chest to the edge','3 × 6–10'],['Towel door rows','Towel around a door handle, lean back, pull in','3 × 10'],['Superman holds','Lift arms and legs, hold 2 s','3 × 12'],['Dead bugs','Low back pressed down','3 × 10 each side']],
-  [['Table rows','Squeeze shoulder blades at the top','3 × 8–12'],['Towel door rows','Lean back further','3 × 12'],['Reverse snow angels','Face down, sweep arms overhead','3 × 10'],['Bird dogs','Opposite arm and leg, slow','3 × 10 each side']],
-  [['Table rows','Feet farther out, body straighter','4 × 8–10'],['Backpack rows','Load a backpack, one arm, brace on a chair','3 × 10 each arm'],['Superman holds','Hold 3 s','3 × 15'],['Reverse snow angels','Slow','3 × 12']],
-  [['Table rows','Feet up on a chair','4 × 6–10'],['Backpack rows','Heavier bag','4 × 12 each arm'],['Towel door rows','3 seconds on the way back','3 × 10'],['Prone Y-T raises','Face down, thumbs up','3 × 10 each']]],
+  [['Table rows','3 × 6–10'],['Towel door rows','3 × 10'],['Superman holds','3 × 12'],['Dead bugs','3 × 10 each side']],
+  [['Table rows, pause at top','3 × 8–12'],['Towel door rows, lean back further','3 × 12'],['Reverse snow angels','3 × 10'],['Bird dogs','3 × 10 each side']],
+  [['Table rows, feet farther out','4 × 8–10'],['Backpack rows','3 × 10 each arm'],['Superman holds','3 × 15'],['Reverse snow angels','3 × 12']],
+  [['Table rows, feet on a chair','4 × 6–10'],['Backpack rows','4 × 12 each arm'],['Prone Y-T raises','3 × 10 each'],['Dead bugs','3 × 12 each side']]],
  core:[
-  [['Plank','Straight line, breathe','3 × 30 s'],['Side plank','Hips up','3 × 20 s each side'],['Hollow hold','Low back on the floor','3 × 15 s'],['Stretch','Hips, hamstrings, chest, shoulders','10 min']],
-  [['Plank','Straight line','3 × 45 s'],['Side plank','Hips up','3 × 30 s each side'],['Hollow hold','Arms overhead','3 × 20 s'],['Stretch','Hips, hamstrings, chest, shoulders','10 min']],
-  [['Plank','Straight line','3 × 60 s'],['Side plank','Hips up','3 × 40 s each side'],['Lying leg raises','Low back stays down','3 × 10'],['Stretch','Hips, hamstrings, chest, shoulders','10 min']],
-  [['Plank shoulder taps','Hips still','3 × 30 taps'],['Side plank','Top leg raised if you can','3 × 45 s each side'],['Hollow hold','Arms overhead','3 × 30 s'],['Lying leg raises','Slow','3 × 12']]]};
+  [['Plank','3 × 30 s'],['Side plank','3 × 20 s each side'],['Hollow hold','3 × 15 s'],['Stretch','1 × 10 min']],
+  [['Plank','3 × 45 s'],['Side plank','3 × 30 s each side'],['Hollow hold','3 × 20 s'],['Stretch','1 × 10 min']],
+  [['Plank','3 × 60 s'],['Side plank','3 × 40 s each side'],['Lying leg raises','3 × 10'],['Stretch','1 × 10 min']],
+  [['Plank shoulder taps','3 × 30 taps'],['Side plank','3 × 45 s each side'],['Lying leg raises','3 × 12'],['Stretch','1 × 10 min']]]};
+const HOW={
+ 'Incline push-ups':['Hands on a kitchen counter, shoulder-width.','Walk your feet back until your body is a straight line.','Lower your chest to the edge, push back up.'],
+ 'Low incline push-ups':['Hands on a couch seat or sturdy chair.','Body straight from head to heels.','Chest to the edge, push back up.'],
+ 'Floor push-ups':['Hands just wider than shoulders, body straight.','Lower until your chest is a fist off the floor.','If you fail a set early, finish it on your knees.'],
+ 'Decline push-ups':['Feet up on a chair, hands on the floor.','Body straight, lower your chest to the floor.','Harder than floor push-ups. Go slow.'],
+ 'Diamond push-ups':['Hands together under your chest, thumbs and fingers touching.','Elbows stay close to your sides.','Lower your chest to your hands, push up.'],
+ 'Pike push-ups':['Start in a push-up, walk your feet in so your hips point up.','Bend your elbows and lower the top of your head toward the floor.','Push back up. This trains shoulders.'],
+ 'Elevated pike push-ups':['Feet on a chair, hands on the floor, hips high.','Lower your head toward the floor between your hands.','Push back up slowly.'],
+ 'Chair dips':['Sit on the edge of a sturdy chair, hands next to your hips.','Slide off, feet flat, knees bent.','Lower until your elbows are at 90°, push back up.'],
+ 'Straight-leg chair dips':['Same as chair dips, but legs straight out.','Lower until your elbows are at 90°.','Push up without slamming your elbows straight.'],
+ 'Plank':['Forearms on the floor, elbows under your shoulders.','Body straight. Squeeze your glutes and abs.','Breathe. If your hips sag, rest and restart.'],
+ 'Plank shoulder taps':['High plank, hands under shoulders, feet wide.','Tap one shoulder with the opposite hand.','Keep your hips still. Alternate sides.'],
+ 'Bodyweight squats':['Feet shoulder-width, toes slightly out.','Sit back and down until your thighs are level with the floor.','Chest up, drive up through your heels.'],
+ 'Jump squats':['Squat to about half depth.','Jump straight up.','Land softly and sink into the next rep.'],
+ 'Reverse lunges':['Stand tall, step one foot back.','Lower until your back knee nearly touches the floor.','Push through your front heel to stand. Switch legs.'],
+ 'Split squats':['Long stance, one foot forward.','Drop straight down until your back knee nearly touches.','Push up. Do all reps, then switch legs.'],
+ 'Bulgarian split squats':['Back foot on a chair, front foot far forward.','Lower straight down until your front thigh is level.','Push through your front heel. All reps, then switch.'],
+ 'Step-ups':['Face a sturdy chair or step.','Step up with one foot and drive through that heel to stand on top.','Step down slowly. All reps, then switch.'],
+ 'Glute bridges':['Lie on your back, knees bent, feet flat.','Push your hips up until your body is a straight line.','Squeeze your glutes at the top for 1 second.'],
+ 'Single-leg glute bridges':['Same as a bridge, but with one foot in the air.','Drive your hips up through the planted heel.','All reps, then switch.'],
+ 'Wall sit':['Back flat against a wall.','Slide down until your thighs are level with the floor.','Hold. Knees over your ankles.'],
+ 'Calf raises':['Balls of your feet on a step, heels hanging off.','Rise as high as you can, then lower below the step.','Hold a wall for balance.'],
+ 'Table rows':['Test the table first. It must not tip under your weight.','Lie under it, grab the edge with both hands, heels on the floor.','Pull your chest to the edge with a straight body, lower slowly.'],
+ 'Towel door rows':['Close the door fully. Stand on the side where it opens away from you.','Loop a towel around both handles and hold one end in each hand.','Lean back with straight arms, then pull yourself in.'],
+ 'Backpack rows':['Fill a backpack with books or water bottles.','One hand and one knee on a chair, back flat.','Pull the bag to your hip, lower slowly. Switch arms.'],
+ 'Superman holds':['Lie face down, arms overhead.','Lift your arms, chest and legs off the floor.','Hold 2 seconds, lower. That is one rep.'],
+ 'Reverse snow angels':['Lie face down, arms at your sides, lifted slightly.','Sweep your arms out and overhead in an arc.','Sweep back down. Keep your arms off the floor.'],
+ 'Prone Y-T raises':['Lie face down, arms overhead in a Y, thumbs up.','Lift and lower. Then arms out to the sides in a T, lift and lower.','One Y plus one T is one rep.'],
+ 'Dead bugs':['On your back, arms up, knees bent at 90° in the air.','Press your low back into the floor.','Slowly lower the opposite arm and leg, return. Alternate.'],
+ 'Bird dogs':['On your hands and knees.','Reach one arm forward and the opposite leg back.','Hold 2 seconds, return. Alternate.'],
+ 'Side plank':['Lie on your side, elbow under your shoulder.','Lift your hips so your body is a straight line.','Hold, then switch sides.'],
+ 'Hollow hold':['On your back, press your low back into the floor.','Lift your shoulders and legs slightly, arms overhead.','Hold. Bend your knees to make it easier.'],
+ 'Lying leg raises':['On your back, hands under your hips.','Keep your legs straight and lift them to vertical.','Lower slowly without letting your low back arch.'],
+ 'Stretch':['Hip flexors: kneel on one knee, push your hips forward. 1 min per side.','Hamstrings: heel on a step, lean forward with a flat back. 1 min per side.','Chest: forearms on a doorframe, lean in, 1 min. Then child\'s pose, 1 min.']};
 const DAYTYPE={1:'push',2:'legs',3:'pull',4:'core',5:'push',6:'legs',0:'pull'};
 const DAYNAME={push:'Push day',legs:'Leg day',pull:'Pull day',core:'Core + stretch'};
-function weekNum(k){const ws=x=>{const [y,m,d]=x.split('-').map(Number);const dt=new Date(y,m-1,d);dt.setDate(dt.getDate()-((dt.getDay()+6)%7));return dt};return Math.max(0,Math.round((ws(k)-ws(addDays(st.created,1)))/6048e5))}
-function workoutFor(k){const w=weekNum(k),phase=Math.floor(w/2)%4,cycle=Math.floor(w/8),type=DAYTYPE[dowOf(k)];
-  const ex=PHASES[type][phase].map(e=>[e[0],e[1],cycle?e[2].replace(/^(\d+)/,n=>String(+n+Math.min(cycle,2))):e[2]]);
-  return{name:DAYNAME[type],ex,week:w+1,phase:phase+1,cycle}}
-
-const BRK={name:'5 scrambled eggs',p:31},SHAKE={name:'Protein shake, 2 scoops',p:50};
-const DISH={chk:{name:'Lemon-pepper chicken & broccoli',p:52},chili:{name:'Turkey chili',p:46},steak:{name:'Garlic steak bites & green beans',p:54},salmon:{name:'Baked salmon & asparagus',p:44}};
-const MEALS={1:['salmon','steak'],2:['chk','salmon'],3:['salmon','chili'],4:['chk','steak'],5:['chili','chk'],6:['steak','chili'],0:['chk','chili']};
+const DISH={chk:{name:'Lemon-pepper chicken & broccoli',p:52},chili:{name:'Turkey chili',p:46},steak:{name:'Garlic steak bites & green beans',p:54},
+  salmon:{name:'Baked salmon & asparagus',p:44},roti:{name:'Rotisserie chicken + bagged salad',p:50}};
+// Sunday lunch is before prep, so it's a store-bought meal.
+const MEALS={1:['salmon','steak'],2:['chk','salmon'],3:['salmon','chili'],4:['chk','steak'],5:['chili','chk'],6:['steak','chili'],0:['roti','chili']};
+const PLANB={brk:'No eggs? A Greek yogurt cup plus a protein shake.',lunch:'No container? Half a rotisserie chicken and a bagged salad, or 2 cans of tuna with crackers. Not fast food.',
+  dinner:'No container? Same as the lunch Plan B, or 4 eggs and a microwave bag of vegetables.',snack:'No yogurt? A protein shake or 3 hard-boiled eggs.',shake:'No powder? A large glass of milk and a yogurt cup.'};
+const SHOP=['3½ lb boneless skinless chicken thighs','3 lb 93% lean ground turkey','2½ lb sirloin','3 salmon fillets','Rotisserie chicken + bagged salad (today\'s lunch)',
+  '2 lb broccoli','2 bunches asparagus','3 steam-bag green beans','1 onion, 2 bell peppers','1 can no-salt-added diced tomatoes, 1 can kidney beans','Low-sodium broth',
+  'Olive oil, butter, garlic','Salt-free lemon pepper, garlic powder, chili powder, cumin','Lemon, dill','3 dozen eggs','7 Greek yogurt cups','Almonds','Whey protein (if low)','14 meal-prep containers'];
 const RECIPES=[
-  ['Lemon-pepper chicken & broccoli (4 portions)',['3½ lb boneless skinless chicken thighs','2 lb broccoli','Olive oil, salt-free lemon pepper, garlic powder'],['Oven 425°F. Toss chicken with oil and seasoning, roast 10 min.','Add broccoli, roast 15 more min.','Split into 4 containers.']],
-  ['Turkey chili (4 portions)',['3 lb 93% lean ground turkey','1 onion, 2 bell peppers','1 can no-salt-added diced tomatoes, 1 can kidney beans','1 cup low-sodium broth, chili powder, cumin'],['Brown the turkey, about 8 min.','Add everything else, simmer 30 min.','Split into 4 containers.']],
-  ['Garlic steak bites & green beans (3 portions)',['2½ lb sirloin, cubed','2 tbsp butter, garlic','3 steam-bag green beans'],['Sear steak in a hot pan in 2 batches, 3–4 min each.','Add butter and garlic, toss.','Microwave beans, split into 3 containers.']],
-  ['Baked salmon & asparagus (3 portions)',['3 salmon fillets','2 bunches asparagus','Olive oil, lemon, dill'],['Oven 400°F, everything on one pan.','Bake 12–15 min.','Eat these Mon–Wed.']]];
-const HABITS=[['water','Drink 3 L of water'],['noscroll','No Reels, Shorts or TikTok']];
-const CHECK_XP=10, DAY_XP=50;
+  ['Lemon-pepper chicken & broccoli (4 portions)','3½ lb chicken thighs, 2 lb broccoli, olive oil, salt-free lemon pepper, garlic powder',['Oven 425°F. Toss chicken with oil and seasoning, roast 10 min.','Add broccoli, roast 15 more min.','Split into 4 containers.']],
+  ['Turkey chili (4 portions)','3 lb ground turkey, onion, 2 peppers, diced tomatoes, kidney beans, 1 cup broth, chili powder, cumin',['Brown the turkey, about 8 min.','Add everything else, simmer 30 min.','Split into 4 containers.']],
+  ['Garlic steak bites & green beans (3 portions)','2½ lb sirloin cubed, 2 tbsp butter, garlic, 3 bags green beans',['Sear steak in a hot pan in 2 batches, 3–4 min each.','Add butter and garlic, toss.','Microwave the beans, split into 3 containers.']],
+  ['Baked salmon & asparagus (3 portions)','3 salmon fillets, 2 bunches asparagus, olive oil, lemon, dill',['Oven 400°F, everything on one pan.','Bake 12–15 min.','Eat these Mon–Wed.']]];
+const TEMPT={
+  scroll:[{t:'Walk it off',x:'Go outside and walk for 10 minutes. Phone stays in your pocket.'},{t:'Mini circuit',x:'Repeat for 10 minutes: 10 squats, 5 push-ups, a 20-second plank.'},{t:'Stretch it out',x:'10 minutes: hips, hamstrings, chest, then 10 slow breaths.'}],
+  food:[{t:'Water first',x:'Drink a full glass of water, then wait 10 minutes. Cravings usually fade.'},{t:'Eat the plan',x:'Have your snack or protein shake now instead. It counts.'},{t:'Brush your teeth',x:'Brush, then wait 10 minutes. It kills the craving for most people.'}]};
+const HABITS=[{id:'noscroll',t:'No Reels, Shorts or TikTok'},{id:'lowsalt',t:'Low salt: no fast food, chips or deli meat'},{id:'bed',t:'In bed by 10:30 PM'}];
 
-/* ---------- helpers ---------- */
-function dowOf(k){const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d).getDay()}
+/* ================= STATE: one storage key, never reset; new fields get defaults ================= */
+const KEY='repquest.simple.v1';
 const $=id=>document.getElementById(id);
 const dkey=d=>{d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-const addDays=(k,n)=>{const [y,m,d]=k.split('-').map(Number);return dkey(new Date(y,m-1,d+n))};
-const dowOfX=k=>{const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d).getDay()};
+const dateOf=k=>{const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(k,n)=>{const d=dateOf(k);d.setDate(d.getDate()+n);return dkey(d)};
+const dowOf=k=>dateOf(k).getDay();
+const monOf=k=>{const d=dateOf(k);d.setDate(d.getDate()-((d.getDay()+6)%7));return dkey(d)};
 const TICK='<svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 4.5" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-/* ---------- state (stored only on this phone) ---------- */
-const KEY='repquest.simple.v1';
-let st={checks:{},bonus:[],weights:{},created:dkey(Date.now()),reminders:false,mute:false,lastBackup:0};
-try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.checks)st=Object.assign(st,v)}catch(e){}
+let st={checks:{},bonus:[],weights:{},waists:{},water:{},rough:{},adj:{},shop:{},created:dkey(Date.now()),reminders:false,mute:false,lastBackup:0};
+try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.checks){for(const f of Object.keys(st))if(v[f]!==undefined)st[f]=v[f]}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
 save();
 
-function itemsFor(k){
-  const dow=dowOf(k),w=workoutFor(k),[l,d]=MEALS[dow];
-  const workout=w.ex.map((e,i)=>({id:'w'+i,t:e[0],s:e[1],r:e[2]}));
-  const food=[{id:'brk',t:'Breakfast · '+BRK.name,s:'6:15 AM',r:BRK.p+' g'},{id:'lunch',t:'Lunch · '+DISH[l].name,s:'12:00 PM',r:DISH[l].p+' g'},
-    {id:'snack',t:'Snack · Greek yogurt + 1 oz almonds',s:'3:00 PM',r:'26 g'},{id:'dinner',t:'Dinner · '+DISH[d].name,s:'7:30 PM',r:DISH[d].p+' g'},{id:'shake',t:'Shake · '+SHAKE.name,s:'8:30 PM',r:SHAKE.p+' g'}];
-  if(dow===0)food.push({id:'prep',t:'Meal prep for the week',s:'1:00 PM · recipes at the bottom',r:'90 min'});
-  const habits=HABITS.map(h=>({id:h[0],t:h[1],s:'',r:''}));
-  if(dow===1)habits.unshift({id:'weigh',t:'Weigh in',s:'Morning, before eating, same scale',r:'',weigh:true});
-  return{name:w.name,wk:w,workout,food,habits,all:[...workout,...food,...habits]};
+/* ================= PLAN LOGIC ================= */
+function weekNum(k){return Math.max(0,Math.round((dateOf(monOf(k))-dateOf(monOf(addDays(st.created,1))))/6048e5))}
+function workoutFor(k){
+  const w=weekNum(k),phase=Math.floor(w/2)%4,cycle=Math.floor(w/8),type=DAYTYPE[dowOf(k)],rough=!!st.rough[k];
+  let ex=PHASES[type][phase].map((_,i)=>{const p=Math.max(0,Math.min(3,phase+(st.adj[type+':'+i]||0)));const e=PHASES[type][p][i];
+    let rx=e[1];if(cycle)rx=rx.replace(/^(\d+)/,n=>String(+n+Math.min(cycle,2)));return{id:'w'+i,slot:i,type,name:e[0],rx}});
+  if(rough)ex=ex.slice(0,2).map(e=>Object.assign({},e,{rx:e.rx.replace(/^\d+/,'2')}));
+  return{name:DAYNAME[type],type,ex,week:w+1,phase:phase+1,rough};
 }
-const isDone=k=>{const c=st.checks[k]||[];return itemsFor(k).all.every(i=>c.includes(i.id))};
-
+function mealsFor(k){
+  const dow=dowOf(k),[l,d]=MEALS[dow];
+  const m=[{id:'brk',min:375,time:'6:15 AM',t:'Breakfast',name:'5 scrambled eggs',p:31},{id:'lunch',min:720,time:'12:00 PM',t:'Lunch',name:DISH[l].name,p:DISH[l].p},
+    {id:'snack',min:900,time:'3:00 PM',t:'Snack',name:'Greek yogurt + 1 oz almonds',p:26},{id:'dinner',min:1170,time:'7:30 PM',t:'Dinner',name:DISH[d].name,p:DISH[d].p},
+    {id:'shake',min:1230,time:'8:30 PM',t:'Shake',name:'Protein shake, 2 scoops',p:50}];
+  if(dow===0)m.push({id:'groceries',min:630,time:'10:30 AM',t:'Groceries',name:'Shopping list is right below',p:0});
+  if(dow===0)m.push({id:'prep',min:780,time:'1:00 PM',t:'Meal prep',name:'Cook the week, about 90 min (recipes at the bottom)',p:0});
+  return m;
+}
+const checked=(k,id)=>(st.checks[k]||[]).includes(id);
+// A day counts when the workout and the meals are done. Habits are bonus XP and never break a streak.
+function dayComplete(k){return workoutFor(k).ex.every(e=>checked(k,e.id))&&mealsFor(k).every(m=>checked(k,m.id))}
+function streakInfo(){
+  const today=dkey(Date.now());let streak=0,prevMiss=false;const states={};
+  for(let d=st.created,n=0;d<=today&&n<4000;d=addDays(d,1),n++){
+    if(dayComplete(d)){streak++;prevMiss=false;states[d]='ok'}
+    else if(d<today){states[d]=prevMiss?'miss2':'miss1';if(prevMiss)streak=0;prevMiss=true}}
+  return{streak,states};
+}
 function stats(){
-  let xp=0;for(const k in st.checks){xp+=(st.checks[k]||[]).length*CHECK_XP;if(isDone(k))xp+=DAY_XP}
+  let xp=0;for(const k in st.checks){xp+=(st.checks[k]||[]).length*10;if(dayComplete(k))xp+=50}
+  for(const k in st.water)xp+=Math.min(6,st.water[k])*5;
   for(const b of st.bonus)xp+=b.xp;
   let lv=1,into=xp;const need=n=>100+50*(n-1);while(into>=need(lv)){into-=need(lv);lv++}
-  // streak: a single missed day is forgiven, two in a row resets it
-  const today=dkey(Date.now());let streak=0,prevMiss=false;
-  for(let d=st.created,n=0;d<=today&&n<4000;d=addDays(d,1),n++){
-    if(isDone(d)){streak++;prevMiss=false}else if(d<today){if(prevMiss)streak=0;prevMiss=true}}
-  return{xp,lv,into,need:need(lv),streak};
+  return Object.assign({xp,lv,into,need:need(lv)},streakInfo());
 }
 const TITLES=[[1,'Rookie'],[3,'Trainee'],[5,'Contender'],[8,'Athlete'],[12,'Veteran'],[16,'Champion'],[20,'Legend']];
 const title=n=>{let t='Rookie';for(const [l,x] of TITLES)if(n>=l)t=x;return t};
 
-/* ---------- render ---------- */
-let shownDay=dkey(Date.now());
-function weighRow(i,on,k){const v=st.weights[k]||'';return`<div class="row${on?' on':''}" style="cursor:default"><div class="box" aria-hidden="true">${on?TICK:''}</div><div style="min-width:0"><div class="t">${i.t}</div><div class="s">${i.s}</div></div><div style="display:flex;gap:6px;align-items:center"><input id="wIn" type="number" inputmode="decimal" placeholder="lb" value="${v}" aria-label="Weight in pounds" style="width:70px;background:var(--ink);border:1px solid var(--line);border-radius:9px;color:var(--fg);padding:7px;font-family:var(--display);font-size:18px"><button type="button" id="wSave" style="background:var(--gold);color:var(--ink);border:0;border-radius:9px;padding:8px 10px;font-weight:700">Save</button></div></div>`}
-function rows(list,checked,k){return list.map(i=>{const on=checked.includes(i.id);if(i.weigh)return weighRow(i,on,k);
-  return`<button type="button" class="row${on?' on':''}" data-id="${i.id}" aria-pressed="${on}"><div class="box" aria-hidden="true">${on?TICK:''}</div><div style="min-width:0"><div class="t">${i.t}</div>${i.s?`<div class="s">${i.s}</div>`:''}</div><div class="r">${i.r}</div></button>`}).join('')}
+/* ================= RENDER ================= */
+let shownDay=dkey(Date.now()),openHow=null,openPlanB=null;
+const nowMin=()=>{const d=new Date();return d.getHours()*60+d.getMinutes()};
 function render(){
-  const k=dkey(Date.now());shownDay=k;const it=itemsFor(k);const c=st.checks[k]||[];const s=stats();
+  const k=dkey(Date.now());shownDay=k;const s=stats();const w=workoutFor(k);const meals=mealsFor(k);const dow=dowOf(k);
   $('lvName').textContent=`Level ${s.lv} · ${title(s.lv)}`;$('xpText').textContent=`${s.into} / ${s.need} XP`;$('xpBar').style.width=(s.into/s.need*100)+'%';
   $('streak').textContent=s.streak;
-  $('dateLine').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
-  $('dayTitle').textContent=it.name;
-  const done=it.all.filter(i=>c.includes(i.id)).length;$('count').textContent=`${done}/${it.all.length}`;
-  $('banner').innerHTML=done===it.all.length?`<div class="done-banner">Day complete. +${DAY_XP} XP. See you tomorrow.</div>`:'';
-  const wDone=it.workout.filter(i=>c.includes(i.id)).length;
-  $('workout').innerHTML=`<div class="card-h"><h2>${it.name}</h2><span>Week ${it.wk.week} · ${wDone}/${it.workout.length}</span></div>
-    <div class="note">Warm up 3 min: arm circles, leg swings, 10 squats. Rest about 60 s between sets. ${it.wk.phase<4?`Gets harder in week ${(Math.floor((it.wk.week-1)/2)+1)*2+1}.`:'Hardest phase. Next cycle adds a set.'}</div>${rows(it.workout,c,k)}`;
-  $('food').innerHTML=`<div class="card-h"><h2>Food</h2><span>protein</span></div>${rows(it.food,c,k)}`;
-  $('habits').innerHTML=`<div class="card-h"><h2>Habits</h2><span></span></div>${rows(it.habits,c,k)}${weighAdvice()}`;
+  const mon=monOf(k);
+  $('week').innerHTML=['M','T','W','T','F','S','S'].map((l,i)=>{const d=addDays(mon,i);
+    let cls=d>k||d<st.created?'future':d===k?(dayComplete(d)?'ok today':'today'):(s.states[d]||'');
+    const mark=cls.indexOf('ok')===0?'✓':(cls==='miss1'||cls==='miss2')?'×':'';return`<div class="wd">${l}<i class="${cls}">${mark}</i></div>`}).join('');
+  $('dateLine').textContent=`${new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})} · Week ${w.week}`;
+  $('dayTitle').textContent=w.name;
+  const ess=[...w.ex.map(e=>e.id),...meals.map(m=>m.id)];const done=ess.filter(id=>checked(k,id)).length;
+  $('count').innerHTML=`${done}/${ess.length}<span>TO COMPLETE</span>`;
+  $('banner').innerHTML=dayComplete(k)?`<div class="done-banner">Day complete. Streak +1. Habits are bonus XP.</div>`:'';
+  renderToday(k,w,meals);renderHabits(k);
+  $('review').hidden=dow!==0;$('shop').hidden=dow!==0;
+  if(dow===0){renderReview(k);renderShop(k)}
   $('remind').hidden=!!st.reminders;
   $('muteBtn').textContent=st.mute?'Sounds off':'Sounds on';
-  const d=st.lastBackup?Math.floor((Date.now()-st.lastBackup)/864e5):null;
-  $('backupNote').textContent=d===null?'No backup yet':d<1?'Backed up today':`Last backup ${d} day${d>1?'s':''} ago`;
-  $('backupNote').style.color=(d===null&&Object.keys(st.checks).length>3)||d>7?'var(--flame)':'';
+  const bd=st.lastBackup?Math.floor((Date.now()-st.lastBackup)/864e5):null;
+  $('backupNote').textContent=bd===null?'No backup yet':bd<1?'Backed up today':`Last backup ${bd} day${bd>1?'s':''} ago`;
+  $('backupNote').style.color=(bd===null&&Object.keys(st.checks).length>3)||bd>7?'var(--flame)':'';
 }
-$('recipes').innerHTML=RECIPES.map(r=>`<h4>${r[0]}</h4><ul>${r[1].map(x=>`<li>${x}</li>`).join('')}</ul><ol>${r[2].map(x=>`<li>${x}</li>`).join('')}</ol>`).join('');
+function renderToday(k,w,meals){
+  const wdone=w.ex.every(e=>checked(k,e.id));
+  const items=meals.map(m=>Object.assign({kind:'meal',done:checked(k,m.id)},m));
+  items.push({id:'workout',kind:'workout',min:1080,done:wdone});items.sort((a,b)=>a.min-b.min);
+  const undone=items.filter(i=>!i.done);const nm=nowMin();
+  const next=undone.filter(i=>i.min<=nm)[0]||undone[0];
+  $('today').innerHTML=`<div class="card-h"><h2>Today</h2><span>in order</span></div>`+items.map(i=>{
+    const isNext=next&&i.id===next.id;const tag=isNext?'<div class="tag">NEXT UP</div>':'';
+    if(i.kind==='meal'){
+      return`<div class="item${isNext?' next':''}">${tag}<button type="button" class="row${i.done?' on':''}" data-check="${i.id}"><span class="box" aria-hidden="true">${i.done?TICK:''}</span><span style="min-width:0"><span class="t" style="display:block">${i.t} · ${i.name}</span><span class="s" style="display:block">${i.time}</span></span><span class="r">${i.p?i.p+' g':''}</span></button>
+        ${!i.done&&PLANB[i.id]?`<button type="button" class="link" data-planb="${i.id}">Don't have it?</button>${openPlanB===i.id?`<div class="planb">${PLANB[i.id]} Eat that, then check it off.</div>`:''}`:''}</div>`}
+    const exHtml=w.ex.map(e=>{const on=checked(k,e.id);const open=openHow===e.id;
+      return`<div class="wo-ex${on?' on':''}"><button type="button" class="box${on?' mine':''}" data-check="${e.id}" aria-label="Mark ${e.name} done">${on?TICK:''}</button>
+        <button type="button" class="info" data-how="${e.id}"><span class="t" style="display:block">${e.name}</span><span class="s" style="display:block">${open?'Hide how-to ▴':'How to do it ▾'}</span></button><span class="r">${e.rx}</span>
+        ${open?`<div class="how"><ol>${(HOW[e.name.split(',')[0]]||[]).map(x=>`<li>${x}</li>`).join('')}</ol><div class="adj"><button type="button" class="btn ghost small" data-adj="-1" data-slot="${e.type}:${e.slot}">Too hard</button><button type="button" class="btn ghost small" data-adj="1" data-slot="${e.type}:${e.slot}">Too easy</button></div></div>`:''}</div>`}).join('');
+    return`<div class="item${isNext?' next':''}">${tag}<div class="row${wdone?' on':''}"><span class="box" aria-hidden="true">${wdone?TICK:''}</span><span><span class="t" style="display:block">Workout · ${w.name}${w.rough?' (short)':''}</span><span class="s" style="display:block">6:00 PM · warm up 3 min · rest 60 s between sets</span></span><span class="r">${w.ex.filter(e=>checked(k,e.id)).length}/${w.ex.length}</span></div>
+      <div class="wo-list">${exHtml}
+      ${wdone?'':`<div style="display:flex;flex-direction:column;gap:4px;margin-top:10px"><button type="button" class="btn" id="startBtn">Start · just do 2 minutes</button>
+      <button type="button" class="link" id="roughBtn" style="padding-left:0;align-self:center">${w.rough?'Back to the full workout':'Rough day? Do the short version'}</button></div>`}</div></div>`;
+  }).join('');
+}
+function renderHabits(k){
+  const wt=st.water[k]||0;
+  $('habits').innerHTML=`<div class="card-h"><h2>Bonus habits</h2><span>XP only</span></div>
+    <div class="item"><div class="row${wt>=6?' on':''}"><span class="box" aria-hidden="true">${wt>=6?TICK:''}</span><span><span class="t" style="display:block">Water · ${(wt*0.5).toFixed(1)} of 3 L</span><span class="pips" style="margin-top:6px">${Array.from({length:6},(_,i)=>`<i class="${i<wt?'on':''}"></i>`).join('')}</span></span>
+      <span style="display:flex;gap:6px"><button type="button" class="btn ghost small" id="waterMinus" aria-label="Remove 500 ml">−</button><button type="button" class="btn small" id="waterPlus">+500 ml</button></span></div></div>`+
+    HABITS.map(h=>{const on=checked(k,h.id);return`<div class="item"><button type="button" class="row${on?' on':''}" data-check="${h.id}"><span class="box" aria-hidden="true">${on?TICK:''}</span><span class="t">${h.t}</span><span class="r">+10</span></button></div>`}).join('')+
+    (dowOf(k)===1?weighHtml(k):'');
+}
+function weighHtml(k){
+  const on=checked(k,'weigh');
+  return`<div class="item"><div class="row${on?' on':''}"><span class="box" aria-hidden="true">${on?TICK:''}</span><span><span class="t" style="display:block">Monday weigh-in</span><span class="s" style="display:block">Morning, before eating. Waist measured at the belly button.</span></span><span></span></div>
+    <div style="display:flex;gap:8px;align-items:center;margin:8px 0 0 42px;flex-wrap:wrap"><input id="wIn" class="inp" type="number" inputmode="decimal" placeholder="lb" value="${st.weights[k]||''}" aria-label="Weight in pounds"><input id="waistIn" class="inp" type="number" inputmode="decimal" placeholder="waist in" value="${st.waists[k]||''}" aria-label="Waist in inches"><button type="button" class="btn small" id="wSave">Save</button></div>
+    ${advice()}</div>`;
+}
+function advice(){
+  const ks=Object.keys(st.weights).sort();if(ks.length<2)return ks.length?'<div class="note" style="margin-left:42px">Saved. Advice starts after next Monday.</div>':'';
+  const a=ks[ks.length-2],b=ks[ks.length-1];const wks=Math.max(1,Math.round((dateOf(b)-dateOf(a))/6048e5));
+  const dw=(st.weights[b]-st.weights[a])/wks;const dz=(st.waists[b]&&st.waists[a])?(st.waists[b]-st.waists[a]):null;
+  let msg;if(dw<=-1.5)msg='Dropping fast. Add a second yogurt each day so you keep your muscle.';
+  else if(dw>-0.5&&dz!==null&&dz<0)msg='Scale is flat but your waist is shrinking. That is the recomp working. Change nothing.';
+  else if(dw>-0.5)msg='Not dropping yet. Skip the almonds this week.';else msg='Right on pace. Change nothing.';
+  return`<div class="note" style="margin-left:42px">Last week: ${dw>0?'+':''}${dw.toFixed(1)} lb${dz!==null?`, waist ${dz>0?'+':''}${dz.toFixed(1)} in`:''}. ${msg}</div>`;
+}
+function renderReview(k){
+  const mon=monOf(k);let full=0,wo=0,cnt=0;
+  for(let i=0;i<7;i++){const d=addDays(mon,i);if(d<st.created||d>k)continue;cnt++;if(dayComplete(d))full++;if(workoutFor(d).ex.every(e=>checked(d,e.id)))wo++}
+  const ks=Object.keys(st.weights).sort();const dw=ks.length>1?(st.weights[ks[ks.length-1]]-st.weights[ks[0]]):null;
+  const zs=Object.keys(st.waists).sort();const dz=zs.length>1?(st.waists[zs[zs.length-1]]-st.waists[zs[0]]):null;
+  $('review').innerHTML=`<div class="card-h"><h2>Week review</h2><span>every Sunday</span></div><div class="stats">
+    <div class="stat"><b>${full}/${cnt}</b><span>days complete${cnt<7?' (since you started)':''}</span></div><div class="stat"><b>${wo}</b><span>workouts done</span></div>
+    <div class="stat"><b>${dw===null?'–':(dw>0?'+':'')+dw.toFixed(1)+' lb'}</b><span>weight since start</span></div><div class="stat"><b>${dz===null?'–':(dz>0?'+':'')+dz.toFixed(1)+' in'}</b><span>waist since start</span></div></div>`;
+}
+function renderShop(k){
+  const got=st.shop[k]||[];
+  $('shop').innerHTML=`<div class="card-h"><h2>Shopping list</h2><span>${got.length}/${SHOP.length}</span></div>`+
+    SHOP.map((x,i)=>{const on=got.includes(i);return`<div class="item" style="padding:9px 0"><button type="button" class="row${on?' on':''}" data-shop="${i}"><span class="box" aria-hidden="true">${on?TICK:''}</span><span class="t" style="font-weight:500">${x}</span><span></span></button></div>`}).join('');
+}
+$('recipes').innerHTML=RECIPES.map(r=>`<h4>${r[0]}</h4><p style="font-size:14px;margin:0 0 6px;color:var(--muted)">${r[1]}</p><ol>${r[2].map(x=>`<li>${x}</li>`).join('')}</ol>`).join('');
 
-function weighAdvice(){
-  const ks=Object.keys(st.weights).sort();if(ks.length<2)return ks.length?`<div class="note">First weigh-in saved. Advice starts after next Monday's.</div>`:'';
-  const a=+st.weights[ks[ks.length-2]],b=+st.weights[ks[ks.length-1]];const wk=Math.max(1,Math.round((new Date(ks[ks.length-1])-new Date(ks[ks.length-2]))/6048e5));const ch=(b-a)/wk;
-  const msg=ch<=-1.5?'Dropping fast. Add a second yogurt each day so you keep your muscle.':ch>-0.5?'Not dropping enough. Skip the almonds this week.':'Right on pace. Change nothing.';
-  return`<div class="note">Last week: ${ch>0?'+':''}${ch.toFixed(1)} lb. ${msg}</div>`}
-/* ---------- checking things off ---------- */
+/* ================= FEEDBACK ================= */
 let actx=null;
 function chime(kind){if(st.mute)return;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();const t=actx.currentTime;
-  (kind==='win'?[523,659,784,1046]:kind==='loot'?[784,1046,1318]:[660,990]).forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type='triangle';o.frequency.value=f;const at=t+i*.1;g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(.2,at+.02);g.gain.exponentialRampToValueAtTime(.0001,at+.25);o.connect(g).connect(actx.destination);o.start(at);o.stop(at+.3)})}catch(e){}}
+  (kind==='win'?[523,659,784,1046]:kind==='loot'?[784,1046,1318]:kind==='go'?[880,0,880]:[660,990]).forEach((f,i)=>{if(!f)return;const o=actx.createOscillator(),gn=actx.createGain();o.type='triangle';o.frequency.value=f;const at=t+i*.1;gn.gain.setValueAtTime(.0001,at);gn.gain.exponentialRampToValueAtTime(.2,at+.02);gn.gain.exponentialRampToValueAtTime(.0001,at+.25);o.connect(gn).connect(actx.destination);o.start(at);o.stop(at+.3)})}catch(e){}}
 function toast(h){const t=document.createElement('div');t.className='toast';t.innerHTML=h;$('toasts').appendChild(t);setTimeout(()=>t.remove(),2800)}
-document.querySelector('.wrap').addEventListener('click',e=>{
-  if(e.target.id==='wSave'){const v=parseFloat($('wIn').value);if(!(v>50&&v<700)){toast('Enter your weight in pounds');return}
-    const k=dkey(Date.now());st.weights[k]=v;const c=st.checks[k]=st.checks[k]||[];if(!c.includes('weigh'))c.push('weigh');save();render();toast('Weigh-in saved');chime('tick');return}
-  const b=e.target.closest('button.row');if(!b)return;
-  const k=dkey(Date.now());const c=st.checks[k]=st.checks[k]||[];const i=c.indexOf(b.dataset.id);
-  const before=stats();
-  if(i>=0){c.splice(i,1)}else{c.push(b.dataset.id);
-    const r=Math.random();if(r<.12){const x=r<.03?40:15;st.bonus.push({ts:Date.now(),xp:x});setTimeout(()=>{toast(`Bonus drop <b>+${x} XP</b>`);chime('loot')},400)}
-    chime('tick')}
+let wl=null;async function wake(on){try{if(on&&navigator.wakeLock&&!wl)wl=await navigator.wakeLock.request('screen');else if(!on&&wl){await wl.release();wl=null}}catch(e){}}
+function commit(before,k,wasDone){
   save();render();const after=stats();
-  if(i<0&&isDone(k))toast(`Day complete <b>+${DAY_XP} XP</b>`),chime('win');
-  if(after.lv>before.lv)toast(`Level up · <b>Level ${after.lv}</b>`),chime('win');
+  if(!wasDone&&dayComplete(k)){toast('Day complete <b>+50 XP</b>');chime('win')}
+  if(after.lv>before.lv){toast(`Level up · <b>Level ${after.lv}</b>`);chime('win')}
+}
+function toggleCheck(id){
+  const k=dkey(Date.now());const wasDone=dayComplete(k);const before=stats();const c=st.checks[k]=st.checks[k]||[];const i=c.indexOf(id);
+  if(i>=0)c.splice(i,1);else{c.push(id);chime('tick');
+    const r=Math.random();if(r<.12){const x=r<.03?40:15;st.bonus.push({ts:Date.now(),xp:x});setTimeout(()=>{toast(`Bonus drop <b>+${x} XP</b>`);chime('loot')},400)}}
+  commit(before,k,wasDone);
+}
+
+/* ================= EVENTS (one handler for the main screen) ================= */
+document.querySelector('.wrap').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;const k=dkey(Date.now());
+  if(b.dataset.check){toggleCheck(b.dataset.check);return}
+  if(b.dataset.how){openHow=openHow===b.dataset.how?null:b.dataset.how;render();return}
+  if(b.dataset.planb){openPlanB=openPlanB===b.dataset.planb?null:b.dataset.planb;render();return}
+  if(b.dataset.adj){const key=b.dataset.slot;st.adj[key]=Math.max(-3,Math.min(3,(st.adj[key]||0)+(+b.dataset.adj)));save();render();
+    {const ne=workoutFor(dkey(Date.now())).ex.find(x=>x.type+':'+x.slot===key);toast(`Now: ${ne.name} · ${ne.rx}`)}return}
+  if(b.dataset.shop!==undefined){const gl=st.shop[k]=st.shop[k]||[];const i=+b.dataset.shop;const j=gl.indexOf(i);if(j>=0)gl.splice(j,1);else{gl.push(i);chime('tick')}save();render();return}
+  if(b.id==='startBtn'){startGuide();return}
+  if(b.id==='roughBtn'){if(st.rough[k])delete st.rough[k];else{st.rough[k]=true;toast('Short version: 2 exercises, 2 sets. Still counts.')}const wd=dayComplete(k);commit(stats(),k,wd);return}
+  if(b.id==='waterPlus'){const before=stats();const was=st.water[k]||0;st.water[k]=Math.min(6,was+1);chime('tick');if(was<6&&st.water[k]===6)toast('3 L done');commit(before,k,dayComplete(k));return}
+  if(b.id==='waterMinus'){st.water[k]=Math.max(0,(st.water[k]||0)-1);save();render();return}
+  if(b.id==='wSave'){const v=parseFloat($('wIn').value),z=parseFloat($('waistIn').value);if(!(v>50&&v<700)){toast('Enter your weight in pounds');return}
+    const before=stats();st.weights[k]=v;if(z>15&&z<90)st.waists[k]=z;const c=st.checks[k]=st.checks[k]||[];if(!c.includes('weigh'))c.push('weigh');chime('tick');toast('Weigh-in saved');commit(before,k,dayComplete(k));return}
+  if(b.id==='temptBtn'){openTempt();return}
+  if(b.id==='remindDone'){st.reminders=true;save();render();return}
+  if(b.id==='reRemind'){st.reminders=false;save();render();$('remind').scrollIntoView();return}
+  if(b.id==='muteBtn'){st.mute=!st.mute;save();render();return}
+  if(b.id==='exportBtn'){exportBackup();return}
 });
 
-/* ---------- reminders, sound, backup ---------- */
-$('remindDone').onclick=()=>{st.reminders=true;save();render()};
-$('reRemind').onclick=()=>{st.reminders=false;save();render();window.scrollTo(0,document.body.scrollHeight)};
-$('muteBtn').onclick=()=>{st.mute=!st.mute;save();render()};
-$('exportBtn').onclick=async()=>{
+/* ================= GUIDED WORKOUT: one set at a time, rest timer, holds timed ================= */
+let g=null,gIv=null;
+function parseRx(rx){const sets=parseInt(rx,10)||3;const sec=(rx.match(/(\d+)\s*s\b/)||[])[1];const mn=(rx.match(/(\d+)\s*min/)||[])[1];return{sets,hold:sec?+sec:mn?+mn*60:0,each:/each side/.test(rx)}}
+function startGuide(){
+  const k=dkey(Date.now());const list=workoutFor(k).ex.filter(e=>!checked(k,e.id));if(!list.length)return;
+  g={k,list,i:0,set:1,phase:'work',end:0,start:Date.now(),two:false};$('guide').hidden=false;wake(true);chime('go');drawGuide();clearInterval(gIv);gIv=setInterval(tickGuide,250)}
+function curEx(){return g.list[g.i]}
+function drawGuide(){
+  if(!g)return;const e=curEx(),p=parseRx(e.rx);
+  $('gProg').textContent=`Exercise ${g.i+1} of ${g.list.length}`;$('gBar').style.width=(g.i/g.list.length*100)+'%';
+  const pips=`<div class="setpips">${Array.from({length:p.sets},(_,j)=>`<i class="${j<g.set-1?'on':''}"></i>`).join('')}</div>`;
+  if(g.phase==='rest'){
+    $('gMid').innerHTML=`<small>Rest</small><div class="clock" id="gClock"></div><p>Next: <b style="color:var(--fg)">${e.name}</b>, set ${g.set} of ${p.sets}</p>${pips}`;
+    $('gBtns').innerHTML=`<button type="button" class="btn ghost" data-g="skip">Skip rest</button>`;tickGuide();return}
+  if(g.phase==='hold'){
+    $('gMid').innerHTML=`<small>Set ${g.set} of ${p.sets} · hold</small><h3>${e.name}</h3><div class="clock" id="gClock"></div><p>${p.each?'Do one side, then switch when half the time is up.':'Hold steady and breathe.'}</p>${pips}`;
+    $('gBtns').innerHTML=`<button type="button" class="btn ghost" data-g="holddone">Done early</button>`;tickGuide();return}
+  $('gMid').innerHTML=`<small>Set ${g.set} of ${p.sets}</small><h3>${e.name}</h3><p style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--fg)">${e.rx.replace(/^\d+\s*×\s*/,'')}</p>
+    <ol style="text-align:left;margin:0 auto;max-width:420px;color:var(--muted);font-size:15px;padding-left:20px">${(HOW[e.name.split(',')[0]]||[]).map(x=>`<li>${x}</li>`).join('')}</ol>${pips}`;
+  const holdLabel=p.hold>=60?Math.round(p.hold*(p.each?2:1)/60)+'-minute':(p.hold*(p.each?2:1))+'-second';
+  $('gBtns').innerHTML=(p.hold?`<button type="button" class="btn" data-g="hold">Start ${holdLabel} timer</button>`:`<button type="button" class="btn" data-g="set">Set done</button>`)+
+    `<div class="two"><button type="button" class="btn ghost small" data-g="easier" style="width:100%">Too hard</button><button type="button" class="btn ghost small" data-g="harder" style="width:100%">Too easy</button></div><button type="button" class="btn ghost small" data-g="skipex" style="width:100%">Skip this exercise</button>`;
+}
+function tickGuide(){
+  if(!g)return;
+  if(!g.two&&Date.now()-g.start>120000){g.two=true;toast('2 minutes in. Starting was the hard part.')}
+  if(g.phase!=='rest'&&g.phase!=='hold')return;
+  const left=g.end-Date.now();
+  if(left<=0){chime('go');if(g.phase==='hold')setDone();else{g.phase='work';drawGuide()}return}
+  const c=$('gClock');if(c){const s=Math.ceil(left/1000);c.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+}
+function setDone(){
+  const e=curEx(),p=parseRx(e.rx);chime('tick');
+  if(g.set<p.sets){g.set++;g.phase='rest';g.end=Date.now()+60000;drawGuide();return}
+  const c=st.checks[g.k]=st.checks[g.k]||[];if(!c.includes(e.id))c.push(e.id);save();render();toast(`${e.name} done <b>+10 XP</b>`);
+  nextEx(90000);
+}
+function nextEx(rest){
+  g.i++;
+  if(g.i>=g.list.length){const k=g.k;closeGuide();toast('Workout complete. Nice work.');chime('win');if(dayComplete(k))toast('Day complete <b>+50 XP</b>');return}
+  g.set=1;if(rest){g.phase='rest';g.end=Date.now()+rest}else g.phase='work';drawGuide();
+}
+function closeGuide(){clearInterval(gIv);g=null;$('guide').hidden=true;wake(false);render()}
+$('gBtns').addEventListener('click',e=>{
+  const b=e.target.closest('[data-g]');if(!b||!g)return;const act=b.dataset.g;const ex=curEx();const p=parseRx(ex.rx);
+  if(act==='set'){setDone();return}
+  if(act==='hold'){g.phase='hold';g.end=Date.now()+p.hold*1000*(p.each?2:1);chime('go');drawGuide();return}
+  if(act==='holddone'){setDone();return}
+  if(act==='skip'){g.phase='work';drawGuide();return}
+  if(act==='skipex'){nextEx(0);return}
+  if(act==='easier'||act==='harder'){const key=ex.type+':'+ex.slot;st.adj[key]=Math.max(-3,Math.min(3,(st.adj[key]||0)+(act==='easier'?-1:1)));save();
+    const fresh=workoutFor(g.k).ex.find(x=>x.id===ex.id);if(fresh)g.list[g.i]=fresh;
+    toast(fresh&&(fresh.name!==ex.name||fresh.rx!==ex.rx)?`Now: ${fresh.name} · ${fresh.rx}`:(act==='easier'?'Already the easiest version':'Already the hardest version'));drawGuide();render()}
+});
+$('gClose').onclick=()=>{closeGuide();toast('Stopped. Finished exercises are saved.')};
+
+/* ================= I'M TEMPTED ================= */
+let tpPick=null,tm=null;
+function openTempt(){
+  $('tpBody').innerHTML=`<small>What's pulling at you?</small><h3>Pick one</h3><div class="choice" style="margin-top:8px">
+    <button type="button" class="btn" data-tp="scroll">Urge to scroll or slack off</button><button type="button" class="btn" data-tp="food">Craving junk food</button></div>`;
+  $('temptOv').hidden=false}
+function showTp(){const q=TEMPT[tpPick.kind][tpPick.i];
+  $('tpBody').innerHTML=`<small>10 minutes · +30 XP</small><h3>${q.t}</h3><p style="font-size:17px;color:var(--fg)">${q.x}</p><p style="font-size:13px">Urges peak and fade in about 10 minutes. Spend them here.</p>
+    <div class="choice" style="margin-top:8px"><button type="button" class="btn" data-tpx="go">Start 10 minutes</button><button type="button" class="btn ghost" data-tpx="other">Give me a different one</button></div>`}
+$('tpBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.tp){tpPick={kind:b.dataset.tp,i:Math.floor(Math.random()*TEMPT[b.dataset.tp].length)};showTp();return}
+  if(b.dataset.tpx==='other'){tpPick.i=(tpPick.i+1)%TEMPT[tpPick.kind].length;showTp();return}
+  if(b.dataset.tpx==='go'){const q=TEMPT[tpPick.kind][tpPick.i];$('temptOv').hidden=true;openTimer(q)}});
+$('tpClose').onclick=()=>{$('temptOv').hidden=true};
+function openTimer(q){tm={start:Date.now()};$('tmTitle').textContent=q.t;$('tmText').textContent=q.x;$('timerOv').hidden=false;wake(true);chime('go');tm.iv=setInterval(tickTimer,250);tickTimer()}
+function tickTimer(){if(!tm)return;const left=600000-(Date.now()-tm.start);if(left<=0){finishTimer();return}const s=Math.ceil(left/1000);$('tmClock').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function finishTimer(){if(!tm)return;clearInterval(tm.iv);tm=null;$('timerOv').hidden=true;wake(false);const k=dkey(Date.now());const before=stats();st.bonus.push({ts:Date.now(),xp:30});chime('win');toast('Urge beaten <b>+30 XP</b>');commit(before,k,dayComplete(k))}
+$('tmDone').onclick=finishTimer;
+$('tmCancel').onclick=()=>{if(!tm)return;clearInterval(tm.iv);tm=null;$('timerOv').hidden=true;wake(false)};
+
+/* ================= BACKUP ================= */
+async function exportBackup(){
   st.lastBackup=Date.now();save();render();
   const name='rep-quest-backup-'+dkey(Date.now())+'.json';const blob=new Blob([JSON.stringify(st)],{type:'application/json'});
   try{const f=new File([blob],name,{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e&&e.name==='AbortError')return}
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
-};
+}
 $('importFile').onchange=async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
   try{const v=JSON.parse(await f.text());if(!v||!v.checks)throw 0;
     for(const k in v.checks)st.checks[k]=[...new Set([...(st.checks[k]||[]),...v.checks[k]])];
     const seen=new Set(st.bonus.map(b=>b.ts));for(const b of v.bonus||[])if(!seen.has(b.ts))st.bonus.push(b);
-    Object.assign(st.weights,v.weights||{});
+    for(const f2 of ['weights','waists','water','rough','adj','shop'])Object.assign(st[f2],v[f2]||{});
     if(v.created&&v.created<st.created)st.created=v.created;save();render();toast('Backup imported')}
   catch(err){toast("That isn't a Rep Quest backup file")}};
 
-/* ---------- new day + updates ---------- */
-function newDay(){if(dkey(Date.now())!==shownDay)render()}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)newDay()});
-window.addEventListener('focus',newDay);setInterval(newDay,30000);
+/* ================= NEW DAY, NEXT-UP REFRESH, UPDATES ================= */
+let lastMin=nowMin();
+function tick(){const k=dkey(Date.now());if(k!==shownDay){openHow=null;openPlanB=null;render();return}const m=nowMin();if(m!==lastMin){lastMin=m;if(!g&&!tm)render()}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});window.addEventListener('focus',tick);setInterval(tick,30000);
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 if('serviceWorker' in navigator&&location.protocol==='https:'){
   const had=!!navigator.serviceWorker.controller;let reloaded=false;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!reloaded){reloaded=true;location.reload()}});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!reloaded&&!g&&!tm){reloaded=true;location.reload()}});
   window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{r.update().catch(()=>{});document.addEventListener('visibilitychange',()=>{if(!document.hidden)r.update().catch(()=>{})})}).catch(()=>{}));
 }
 render();
