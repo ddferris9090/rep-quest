@@ -132,6 +132,19 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .ov-row input{width:90px;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--fg);padding:9px;font-family:var(--display);font-size:20px;text-align:center}
 .ov-btns{display:flex;flex-direction:column;gap:8px}
 
+/* Today's workout box */
+.wo-box{background:var(--ink);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.wo-box.done{border-color:rgba(79,209,181,.5)}
+.wo-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.wo-head b{font-family:var(--display);font-size:22px;font-weight:800;text-transform:uppercase;line-height:1.05}
+.wo-head span{font-size:12px;color:var(--muted);white-space:nowrap}
+.wo-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.wo-list li{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);font-size:15px}
+.wo-list li:first-child{border-top:0}
+.wo-list li i{font-style:normal;font-family:var(--display);font-weight:700;color:var(--muted)}
+.wo-list li small{color:var(--gold);font-family:var(--display);font-size:16px;font-weight:700;white-space:nowrap}
+.wo-list li em{display:block;font-style:normal;font-size:12px;color:var(--muted)}
+
 /* Week */
 .week{display:flex;flex-direction:column;gap:12px}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
@@ -678,6 +691,25 @@ function renderRemind(){const k=tdKey();$('remindBtn').href='reminders-'+k+'.ics
   $('remindCard').hidden=st.reminders===k;
   $('remindTitle').textContent=st.reminders&&st.reminders!==k?'Training days changed. Delete the old Rep Quest events in Calendar, then re-add':'Get reminded every day';}
 let showList=false, lastNow=null;
+const RECOVERY=[['Brisk walk','Easy pace, you could still talk','30 min'],['Hip flexor stretch','Kneel on one knee, push hips forward','1 min each side'],['Hamstring stretch','Heel on a step, lean forward with a flat back','1 min each side'],['Cat-cow','On hands and knees, slow','10 reps'],["Child's pose",'Breathe slowly','1 min'],['Doorway chest stretch','Forearms on the frame, lean in','1 min']];
+function workoutBox(k){
+  const dow=dowOf(k),train=st.trainDays.includes(dow),isMin=!!(st.minDays&&st.minDays[k]);const {items}=missionItems(k);const wo=items.find(i=>i.id==='wo');const done=wo&&wo.done;
+  let title,meta,rows,btn;
+  if(isMin){title='10 minutes of anything';meta='Minimum mission';
+    rows=[['Walk','Around the block','10 min'],['Or: easy circuit','Squats, push-ups, plank, repeat','10 min'],['Or: stretch','Use the recovery stretches','10 min']];
+    btn=`<button type="button" class="bigbtn" data-timer="min">Start 10 minutes</button>`}
+  else if(train&&st.mode==='cal'){title='Calisthenics full body';meta='About 50 min';
+    rows=CAL.map(c=>{const i=Math.min(st.rungs[c.id]||0,c.rungs.length-1);const nm=c.rungs[i];const tm=nm.match(/\((.*)\)/);return[nm.replace(/\s*\(.*\)/,''),`${c.pair} · ${c.slot}`,tm?`3 × ${tm[1]}`:(c.core?'3 × 8–12':'3 × 5–8')]});
+    btn=`<button type="button" class="bigbtn" data-guide="1">Just do 2 minutes ›</button>`}
+  else if(train){const g=GYM[sessionFor('gym').day];title=`Gym ${g.name}`;meta='About 50 min';
+    rows=g.ex.map(e=>{const last=st.gymLast[e.id];return[e.name,last?`Last: ${last.w?last.w+' lb × ':''}${last.r||'?'}`:'Rest 2 min between sets',e.sets]});
+    btn=`<button type="button" class="bigbtn" data-guide="1">Just do 2 minutes ›</button>`}
+  else{title='Recovery: walk + stretch';meta='About 40 min';rows=RECOVERY;
+    btn=`<button type="button" class="bigbtn" data-timer="walk">Start 30-minute walk</button>`}
+  return`<div class="wo-box${done?' done':''}"><div><small style="font-size:11px;letter-spacing:.2em;color:var(--gold);font-weight:700">TODAY'S WORKOUT · ${meta.toUpperCase()}</small><div class="wo-head"><b>${done?'✓ ':''}${title}</b></div></div>
+    <ol class="wo-list">${rows.map((r,i)=>`<li><i>${i+1}</i><div>${r[0]}<em>${r[1]}</em></div><small>${r[2]}</small></li>`).join('')}</ol>
+    ${done?'<div class="m-done">Workout done. Nice.</div>':btn}</div>`;
+}
 function renderMission(){
   renderRemind();
   const k=dkey(Date.now());const {train,items}=missionItems(k);const done=items.filter(i=>i.done).length;const complete=!!st.missions[k];const isMin=!!(st.minDays&&st.minDays[k]);
@@ -687,7 +719,8 @@ function renderMission(){
   const act=i=>i.kind==='meal'?`data-meal="${i.id}"`:i.kind==='train'?'data-guide="1"':i.kind==='walk'?'data-timer="walk"':i.kind==='min'?'data-timer="min"':'data-go="eat"';
   const bigLabel=i=>i.kind==='meal'?'Done ✓':i.kind==='train'?'Just do 2 minutes ›':i.kind==='walk'?'Start 30-minute walk':i.kind==='min'?'Start 10 minutes':'Check off habits ›';
   let html=`<div class="m-head"><div><b>${dayName}</b><span>${kindLine}</span></div><div class="m-pct num">${done}/${items.length}</div></div><div class="xpbar m-bar"><i style="width:${done/items.length*100}%"></i></div>`;
-  const next=items.find(i=>!i.done);
+  html+=workoutBox(k);
+  const next=items.find(i=>!i.done&&i.id!=='wo');
   if(complete)html+=`<div class="m-done">${isMin?'Minimum mission done. The streak lives. Full mission again tomorrow.':'Mission complete. A new one unlocks at midnight.'}</div>`;
   else if(next){const fresh=lastNow!==next.id;lastNow=next.id;
     html+=`<div class="now"${fresh?'':' style="animation:none"'}><small>NOW</small><div class="m-label">${next.label}</div><div class="now-text">${next.text}</div><div class="qp">${next.sub}</div><button type="button" class="bigbtn" ${act(next)}>${bigLabel(next)}</button></div>`}
