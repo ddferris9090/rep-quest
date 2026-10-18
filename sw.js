@@ -1,5 +1,5 @@
 // Rep Quest offline cache. Bump VERSION when you upload new app files.
-const VERSION = 'rq-v5';
+const VERSION = 'rq-v6';
 const SHELL = ['./', 'index.html', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

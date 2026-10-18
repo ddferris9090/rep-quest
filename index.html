@@ -445,7 +445,7 @@ textarea{background:var(--ink);border:1px solid var(--line);border-radius:12px;c
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
   <div class="sheet-in">
     <div class="grab"></div>
-    <h3 id="sheetTitle">New session</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 id="sheetTitle">New session</h3><button type="button" class="ov-x" id="sheetClose" style="font-size:15px;padding:10px 16px">Cancel</button></div>
     <div class="field"><span class="lab">Type</span><div class="seg c4" id="typeSeg"></div></div>
     <div class="field">
       <label for="minInput">Minutes</label>
@@ -891,6 +891,8 @@ function syncSheet(){
 function openSheet(type,m,note){drawTypes();sel.type=type||typeOrder()[0];if(m)$('minInput').value=m;$('note').value=note||'';
   $('scrim').hidden=false;$('sheet').hidden=false;requestAnimationFrame(()=>{$('scrim').classList.add('show');$('sheet').classList.add('show')});syncSheet()}
 function closeSheet(){pendingPlan=null;$('scrim').classList.remove('show');$('sheet').classList.remove('show');setTimeout(()=>{$('scrim').hidden=true;$('sheet').hidden=true},280)}
+$('sheetClose').onclick=closeSheet;
+$('lvup').addEventListener('click',()=>{$('lvup').hidden=true});
 $('fab').onclick=()=>{pendingPlan=null;openSheet()};$('scrim').onclick=closeSheet;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('sheet').hidden)closeSheet()});
 $('sheet').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
